@@ -15,7 +15,6 @@ namespace Server.Networking
             _listener = new TcpListener(IPAddress.Parse(ip), port);
         }
 
-
         public async Task StartAsync()
         {
             _listener.Start();
@@ -27,7 +26,7 @@ namespace Server.Networking
                 Console.WriteLine("Client connected!");
 
                 var handler = new ClientHandler(client);
-                _ = Task.Run(() => handler.HandleAsync());
+                _ = handler.HandleAsync();
             }
         }
 

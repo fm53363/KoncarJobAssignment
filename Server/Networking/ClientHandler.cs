@@ -7,9 +7,25 @@ namespace Server.Networking
 
         private readonly TcpClient _client;
 
+
+        public int ClientId { get; }
+
+        private static int _nextId = 0;
+
         public ClientHandler(TcpClient client)
         {
             _client = client;
+            ClientId = Interlocked.Increment(ref _nextId);
+        }
+
+
+
+        private void Log(string message)
+        {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] " +
+                $"[Client {ClientId}] " +
+                $"[Thread {Thread.CurrentThread.ManagedThreadId}] " +
+                $"{message}");
         }
 
 
@@ -21,14 +37,18 @@ namespace Server.Networking
             {
                 while (true)
                 {
+                    Log("reading from stream");
                     int bytes = await stream.ReadAsync(buffer);
                     if (bytes == 0)
                         break;
                     string msg = System.Text.Encoding.UTF8.GetString(buffer, 0, bytes);
-                    Console.WriteLine($"Received: {msg}");
+                    Log($"Received: {msg}");
+
                     string response = "Echo: " + msg;
                     byte[] data = System.Text.Encoding.UTF8.GetBytes(response);
                     await stream.WriteAsync(data);
+                    Log("after writing to stream");
+
                 }
             }
             catch (Exception ex)
