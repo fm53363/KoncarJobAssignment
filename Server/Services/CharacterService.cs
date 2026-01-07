@@ -1,6 +1,6 @@
-﻿using Server.Models;
-using Server.Repositories;
+﻿using Server.Repositories;
 using Server.Sql;
+using Shared.Models;
 
 namespace Server.Services
 {

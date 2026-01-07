@@ -1,6 +1,6 @@
-﻿namespace Server.Models
+﻿namespace Shared.Models
 {
-    internal class Character
+    public class Character
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;

@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Text;
 
 namespace Server.Networking
 {
@@ -32,23 +33,24 @@ namespace Server.Networking
         public async Task HandleAsync()
         {
             using var stream = _client.GetStream();
-            byte[] buffer = new byte[1024];
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            using var writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+
             try
             {
                 while (true)
                 {
                     Log("reading from stream");
-                    int bytes = await stream.ReadAsync(buffer);
-                    if (bytes == 0)
+                    string? msg = await reader.ReadLineAsync();
+                    if (msg is null) // client closed connection
                         break;
-                    string msg = System.Text.Encoding.UTF8.GetString(buffer, 0, bytes);
+
                     Log($"Received: {msg}");
 
+                    // TODO: parse JSON and execute CRUD; for now echo
                     string response = "Echo: " + msg;
-                    byte[] data = System.Text.Encoding.UTF8.GetBytes(response);
-                    await stream.WriteAsync(data);
+                    await writer.WriteLineAsync(response);
                     Log("after writing to stream");
-
                 }
             }
             catch (Exception ex)
