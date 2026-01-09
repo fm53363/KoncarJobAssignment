@@ -3,9 +3,9 @@
     public enum RequestType
     {
         Create,
-        Read,
+        GetById,
         Update,
         Delete,
-        List
+        GetAll
     }
 }

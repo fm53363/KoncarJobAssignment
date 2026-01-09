@@ -34,10 +34,10 @@ namespace Shared.Protocol
             return req;
         }
 
-        public static Request Read(int id)
+        public static Request GetById(int id)
         {
             var req = new Request();
-            req.Operation = RequestType.Read;
+            req.Operation = RequestType.GetById;
             req.Id = id;
             return req;
         }
@@ -60,11 +60,31 @@ namespace Shared.Protocol
             return req;
         }
 
-        public static Request List()
+        public static Request GetAll()
         {
             var req = new Request();
-            req.Operation = RequestType.List;
+            req.Operation = RequestType.GetAll;
             return req;
+        }
+
+
+        public override string ToString()
+        {
+            switch (Operation)
+            {
+                case RequestType.GetAll:
+                    return "GetAll()";
+                case RequestType.GetById:
+                    return $"GetById({Id})";
+                case RequestType.Create:
+                    return $"Create('{Title}', '{Desc}')";
+                case RequestType.Update:
+                    return $"Update({Id}, '{Title}', '{Desc}')";
+                case RequestType.Delete:
+                    return $"Delete({Id})";
+                default:
+                    return "Unknown";
+            }
         }
     }
 }
