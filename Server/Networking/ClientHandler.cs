@@ -1,5 +1,7 @@
-﻿using System.Net.Sockets;
+﻿using Shared.Protocol;
+using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace Server.Networking
 {
@@ -7,15 +9,17 @@ namespace Server.Networking
     {
 
         private readonly TcpClient _client;
+        private readonly RequestHandler _handler;
 
 
         public int ClientId { get; }
 
         private static int _nextId = 0;
 
-        public ClientHandler(TcpClient client)
+        public ClientHandler(TcpClient client, RequestHandler handler)
         {
             _client = client;
+            _handler = handler;
             ClientId = Interlocked.Increment(ref _nextId);
         }
 
@@ -24,7 +28,7 @@ namespace Server.Networking
         private void Log(string message)
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] " +
-                $"[Client {ClientId}] " +
+                $"[Hander for Client {ClientId}] " +
                 $"[Thread {Thread.CurrentThread.ManagedThreadId}] " +
                 $"{message}");
         }
@@ -40,18 +44,27 @@ namespace Server.Networking
             {
                 while (true)
                 {
-                    Log("reading from stream");
+                    Log("waiting for requests");
                     string? msg = await reader.ReadLineAsync();
                     if (msg is null) // client closed connection
                         break;
 
                     Log($"Received: {msg}");
 
-                    // TODO: parse JSON and execute CRUD; for now echo
-                    string response = "Echo: " + msg;
-                    await writer.WriteLineAsync(response);
+                    Request request = Request.FromJson(msg);
+
+                    Response response = await _handler.Handle(request);
+
+                    await writer.WriteLineAsync(response.ToJson());
                     Log("after writing to stream");
                 }
+            }
+            catch (JsonException ex)
+            {
+                Log("Invalid JSON received");
+
+                var errorResponse = Response.Error("Invalid request format");
+                await writer.WriteLineAsync(errorResponse.ToJson());
             }
             catch (Exception ex)
             {

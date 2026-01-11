@@ -24,10 +24,9 @@ namespace Server.Services
             try
             {
                 var result = _repository.Delete(id);
-                if (result)
-                {
-                    await _sqlWriter.WriteAsync($"DELETE FROM Characters WHERE Id = {id}");
-                }
+
+                await _sqlWriter.WriteAsync($"DELETE FROM Characters WHERE Id = {id}");
+
                 return result;
             }
             finally { _lock.Release(); }
@@ -65,10 +64,8 @@ namespace Server.Services
             try
             {
                 var result = _repository.GetById(id);
-                if (result != null)
-                {
-                    await _sqlWriter.WriteAsync($"SELECT * FROM Characters WHERE Id = {id};");
-                }
+
+                await _sqlWriter.WriteAsync($"SELECT * FROM Characters WHERE Id = {id};");
                 return result;
 
             }
@@ -81,10 +78,9 @@ namespace Server.Services
             try
             {
                 var result = _repository.Update(character);
-                if (result)
-                {
-                    await _sqlWriter.WriteAsync($"UPDATE Characters SET Title = '{character.Title}', Desc = '{character.Desc}' WHERE Id = {character.Id};");
-                }
+
+                await _sqlWriter.WriteAsync($"UPDATE Characters SET Title = '{character.Title}', Desc = '{character.Desc}' WHERE Id = {character.Id};");
+
                 return result;
 
             }

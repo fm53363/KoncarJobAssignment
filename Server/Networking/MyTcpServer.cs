@@ -3,16 +3,18 @@ using System.Net.Sockets;
 
 namespace Server.Networking
 {
-    public class MyTcpServer
+    internal class MyTcpServer
     {
 
         private readonly TcpListener _listener;
+        private readonly RequestHandler _handler;
         private bool _running;
 
 
-        public MyTcpServer(string ip = "127.0.0.1", int port = 5000)
+        public MyTcpServer(RequestHandler handler, int port = 5000)
         {
-            _listener = new TcpListener(IPAddress.Parse(ip), port);
+            _listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+            _handler = handler;
         }
 
         public async Task StartAsync()
@@ -25,7 +27,7 @@ namespace Server.Networking
                 var client = await _listener.AcceptTcpClientAsync();
                 Console.WriteLine("Client connected!");
 
-                var handler = new ClientHandler(client);
+                var handler = new ClientHandler(client, _handler);
                 _ = handler.HandleAsync();
             }
         }
@@ -35,10 +37,6 @@ namespace Server.Networking
             _running = false;
             _listener.Stop();
         }
-
-
-
-
 
     }
 }
