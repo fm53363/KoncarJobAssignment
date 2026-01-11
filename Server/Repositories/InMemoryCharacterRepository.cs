@@ -15,7 +15,6 @@ namespace Server.Repositories
 
         private readonly Dictionary<int, Character> _storage = [];
         private int _nextId = 0;
-        private readonly object _lock = new();
 
         public Character Create(Character character)
         {
