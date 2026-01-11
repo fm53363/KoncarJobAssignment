@@ -1,5 +1,6 @@
 ﻿using Shared.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Shared.Protocol
 {
@@ -8,8 +9,13 @@ namespace Shared.Protocol
         public string Status { get; set; } = "ok";
         public string Message { get; set; } = "";
 
+
         // Jedan Item ili lista Item-a
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+
         public Character? Item { get; set; } = null;
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<Character>? Items { get; set; } = null;
 
         // Serializacija u JSON

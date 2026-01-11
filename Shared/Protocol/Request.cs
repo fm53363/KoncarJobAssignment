@@ -7,8 +7,12 @@ namespace Shared.Protocol
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RequestType Operation { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? Id { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Title { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Desc { get; set; }
 
         // Serializacija u JSON

@@ -20,12 +20,21 @@ namespace Client
                 while (true)
                 {
                     ShowMenu();
-                    string? choice = Console.ReadLine();
+                    string? choiceStr = Console.ReadLine();
 
-                    if (choice == "6" || choice == null)
+
+                    if (!int.TryParse(choiceStr, out int choice) || choice < 1 || choice > 6)
                     {
+                        Console.WriteLine("Enter number between 1 and 6.\n");
+                        continue;
+                    }
+
+                    if (choice == 6)
+                    {
+                        Console.WriteLine("Exiting...");
                         break;
                     }
+
 
                     var req = HandleChoice(choice);
                     client.Send(req);
@@ -43,25 +52,25 @@ namespace Client
             }
         }
 
-        private static Request HandleChoice(string choice)
+        private static Request HandleChoice(int choice)
         {
 
             var req = new Request();
             switch (choice)
             {
-                case "1":
+                case 1:
                     req = BuildGetAllRequest();
                     break;
-                case "2":
+                case 2:
                     req = BuildGetByIdRequest();
                     break;
-                case "3":
+                case 3:
                     req = BuildCreateRequest();
                     break;
-                case "4":
+                case 4:
                     req = BuildUpdateRequest();
                     break;
-                case "5":
+                case 5:
                     req = BuildDeleteRequest();
                     break;
                 default:
@@ -127,7 +136,7 @@ namespace Client
         }
         private static void ShowMenu()
         {
-            Console.WriteLine("\n====== MENI ======");
+            Console.WriteLine("\n====== MENU ======");
 
             Console.WriteLine("1. GetAll");
             Console.WriteLine("2. GetById");
@@ -135,9 +144,9 @@ namespace Client
             Console.WriteLine("4. Update");
             Console.WriteLine("5. Delete");
 
-            Console.WriteLine("6. Izlaz");
+            Console.WriteLine("6. Exit");
 
-            Console.Write("Odaberi naredbu: ");
+            Console.Write("Enter command (1-6): ");
             return;
         }
     }

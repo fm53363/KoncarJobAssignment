@@ -5,7 +5,8 @@ using System.Text;
 public class MyTcpClient : IDisposable
 {
     private TcpClient? _tcpClient;
-    private NetworkStream? _stream;
+    private StreamReader? _reader;
+    private StreamWriter? _writer;
     private readonly string _serverIp;
     private readonly int _port;
 
@@ -23,13 +24,16 @@ public class MyTcpClient : IDisposable
             return;
 
         _tcpClient = new TcpClient(_serverIp, _port);
-        _stream = _tcpClient.GetStream();
+        var stream = _tcpClient.GetStream();
+
+        _reader = new StreamReader(stream, Encoding.UTF8);
+        _writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
     }
 
 
     public string? Send(Request req)
     {
-        if (!IsConnected || _stream == null)
+        if (!IsConnected || _writer == null || _reader == null)
             throw new InvalidOperationException("Not connected to server.");
 
         try
@@ -37,21 +41,20 @@ public class MyTcpClient : IDisposable
             // 1. Serijaliziraj Request u JSON
             string requestJson = req.ToJson();
 
-            // 2. Dodaj newline kao delimiter (da server zna gdje poruka završava)
-            string message = requestJson + "\n";
+            // 2. Pošalji 
+            _writer.WriteLine(requestJson);
+            Console.WriteLine($"[SENDING] {requestJson}");
 
-            // 3. Konvertiraj u byte array
-            byte[] data = Encoding.UTF8.GetBytes(message);
 
-            // 4. Pošalji na server
-            _stream.Write(data, 0, data.Length);
-            Console.WriteLine($"[ŠALJEM:] {requestJson}");
 
-            // 5. Čitaj odgovor do newline-a
-            string response = ReadLine(_stream);
-            Console.WriteLine($"[PRIMAM] {response}");
+            // 3. Primi odgovor (ReadLine čita do \n)
+            string? responseJson = _reader.ReadLine();
+            if (responseJson == null)
+                throw new IOException("Connection closed by server");
 
-            return response;
+            Console.WriteLine($"[RECEIVED] {responseJson}");
+
+            return responseJson;
         }
         catch (IOException ex)
         {
@@ -67,105 +70,14 @@ public class MyTcpClient : IDisposable
     }
 
 
-    private string ReadLine(NetworkStream stream)
-    {
-        var buffer = new List<byte>();
-        int b;
-
-        while ((b = stream.ReadByte()) != -1)
-        {
-            if (b == '\n')  // Newline je delimiter
-                break;
-
-            buffer.Add((byte)b);
-        }
-
-        if (buffer.Count == 0)
-            throw new IOException("Connection closed by server");
-
-        return Encoding.UTF8.GetString(buffer.ToArray());
-    }
-
-
-    /*
-    // ============================================================================
-    // CRUD Wrapper metode (za lakšu upotrebu)
-    // ============================================================================
-
-    /// <summary>
-    /// Dohvaća sve likove (List)
-    /// </summary>
-    public Response GetAll()
-    {
-        if (!IsConnected)
-            Connect();
-
-        var request = Request.List();
-        string? responseJson = Send(request);
-        if (responseJson != null)
-            return Response.FromJson(responseJson);
-    }
-
-    /// <summary>
-    /// Dohvaća lika po ID-u (Read)
-    /// </summary>
-    public Response GetById(int id)
-    {
-        if (!IsConnected)
-            Connect();
-
-        var request = Request.Read(id);
-        string? responseJson = Send(request);
-        return Response.FromJson(responseJson);
-    }
-
-    /// <summary>
-    /// Kreira novog lika (Create)
-    /// </summary>
-    public Response Create(string title, string desc)
-    {
-        if (!IsConnected)
-            Connect();
-
-        var request = Request.Create(title, desc);
-        string? responseJson = Send(request);
-        return Response.FromJson(responseJson);
-    }
-
-    /// <summary>
-    /// Ažurira postojećeg lika (Update)
-    /// </summary>
-    public Response Update(int id, string title, string desc)
-    {
-        if (!IsConnected)
-            Connect();
-
-        var request = Request.Update(id, title, desc);
-        string? responseJson = Send(request);
-        return Response.FromJson(responseJson);
-    }
-
-    /// <summary>
-    /// Briše lika (Delete)
-    /// </summary>
-    public Response Delete(int id)
-    {
-        if (!IsConnected)
-            Connect();
-
-        var request = Request.Delete(id);
-        string? responseJson = Send(request);
-        return Response.FromJson(responseJson);
-    }
-    */
-
-
-    // IDisposable pattern
     public void Dispose()
     {
-        _stream?.Close();
+        _reader?.Dispose();
+        _writer?.Dispose();
+
         _tcpClient?.Close();
-        _stream = null;
+        _reader = null;
+        _writer = null;
         _tcpClient = null;
     }
 }
